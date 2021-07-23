@@ -296,6 +296,28 @@ r0             0x0                 0
 result = 120  
 r0 = 0
 
+**Hack the running program and change the value of `n` at runtime**
+```
+(gdb) run
+The program being debugged has been started already.
+Start it from the beginning? (y or n) y
+Starting program: /home/pi/source/arm-assembly-exercises/fac
+
+Breakpoint 1, 0x00010074 in _start ()
+(gdb) p &n
+$8 = (<data variable, no debug info> *) 0x200ac
+(gdb) set {int}0x200ac = 7
+(gdb) p (int)n
+$9 = 7
+(gdb) disable 2
+(gdb) disable 3
+(gdb) c
+Continuing.
+
+Breakpoint 4, 0x000100a0 in end ()
+(gdb) p (int)result
+$10 = 5040
+```
 ## Notes
 
 .word -> 4 bytes (32 bits)
