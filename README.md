@@ -118,11 +118,11 @@ hexdump fac
 
 ### Debug with GNU Debugger (gdb)
 
-```bash
+```
 gdb fac
 ```
 
-```bash
+```
 (gdb) info files
 ```
 
@@ -131,7 +131,7 @@ Entry point: 0x10074
 ```
 
 Disassembly the entry point memory address:
-```bash
+```
 (gdb) disas 0x10074
 ```
 
@@ -144,8 +144,160 @@ Dump of assembler code for function _start:
 End of assembler dump.
 ```
 
+Print ending address  
+(48 bytes is the total lenght of the program, since the program has 12 insructions
+and each instruction is 4 bytes)
+```
+(gdb) print/x 0x00010074 + 48
+```
 
+```
+$1 = 0x100a4
+```
+
+Disassemble the entire program
+```
+(gdb) disas 0x00010074, 0x100a4
+```
+
+```
+Dump of assembler code from 0x10074 to 0x100a4:
+   0x00010074 <_start+0>:	ldr	r1, [pc, #40]	; 0x100a4 <end+20>
+   0x00010078 <_start+4>:	ldr	r0, [r1]
+   0x0001007c <_start+8>:	subs	r3, r0, #1
+   0x00010080 <_start+12>:	ble	0x10090 <end>
+   0x00010084 <loop+0>:	mul	r0, r3, r0
+   0x00010088 <loop+4>:	subs	r3, r3, #1
+   0x0001008c <loop+8>:	bne	0x10084 <loop>
+   0x00010090 <end+0>:	ldr	r1, [pc, #16]	; 0x100a8 <end+24>
+   0x00010094 <end+4>:	str	r0, [r1]
+   0x00010098 <end+8>:	mov	r0, #0
+   0x0001009c <end+12>:	mov	r7, #1
+   0x000100a0 <end+16>:	svc	0x00000000
+End of assembler dump.
+```
+
+Set breakpoints
+```
+(gdb) break *0x10074
+(gdb) break *0x1007c
+(gdb) break *0x10090
+(gdb) break *0x100a0
+```
+
+Run the program
+```bash
+(gdb) run
+```
+
+```bash
+info register pc
+```
+
+program counter register points to the start address for the first program instruction:
+```
+pc             0x10074             0x10074 <_start>
+````
+
+Another way is to disassemble the current code:  
+(the => sign tells where the program is halted)
+```
+(gdb) disas
+Dump of assembler code for function _start:
+=> 0x00010074 <+0>:	ldr	r1, [pc, #40]	; 0x100a4 <end+20>
+   0x00010078 <+4>:	ldr	r0, [r1]
+   0x0001007c <+8>:	subs	r3, r0, #1
+   0x00010080 <+12>:	ble	0x10090 <end>
+End of assembler dump.
+(gdb) print (int)n
+$2 = 5
+(gdb) p (int)result
+$3 = 0
+```
+
+Printing memory address of symbolic labels:
+```
+(gdb) p &n
+$4 = (<data variable, no debug info> *) 0x200ac
+(gdb) p &result
+$5 = (<data variable, no debug info> *) 0x200b0
+```
+
+Print the hex value of consecutive memory addresses:
+```
+(gdb) x/2xw 0x200ac
+0x200ac:	0x00000005	0x00000000
+```
+
+Continue execution
+```
+(gdb) continue
+Continuing.
+
+Breakpoint 2, 0x0001007c in _start ()
+(gdb) disas
+Dump of assembler code for function _start:
+   0x00010074 <+0>:	ldr	r1, [pc, #40]	; 0x100a4 <end+20>
+   0x00010078 <+4>:	ldr	r0, [r1]
+=> 0x0001007c <+8>:	subs	r3, r0, #1
+   0x00010080 <+12>:	ble	0x10090 <end>
+End of assembler dump.
+(gdb) info registers r0
+r0             0x5                 5
+```
+
+r0 = 5
+
+```
+(gdb) continue
+Continuing.
+
+Breakpoint 3, 0x00010090 in end ()
+(gdb) disas
+Dump of assembler code for function end:
+=> 0x00010090 <+0>:	ldr	r1, [pc, #16]	; 0x100a8 <end+24>
+   0x00010094 <+4>:	str	r0, [r1]
+   0x00010098 <+8>:	mov	r0, #0
+   0x0001009c <+12>:	mov	r7, #1
+   0x000100a0 <+16>:	svc	0x00000000
+   0x000100a4 <+20>:	andeq	r0, r2, r12, lsr #1
+   0x000100a8 <+24>:	strheq	r0, [r2], -r0	; <UNPREDICTABLE>
+End of assembler dump.
+(gdb) i r r0
+r0             0x78                120
+(gdb) p (int)result
+$6 = 0
+```
+
+r0 = 120  
+result = 0
+
+```
+(gdb) c
+Continuing.
+
+Breakpoint 4, 0x000100a0 in end ()
+(gdb) disas
+Dump of assembler code for function end:
+   0x00010090 <+0>:	ldr	r1, [pc, #16]	; 0x100a8 <end+24>
+   0x00010094 <+4>:	str	r0, [r1]
+   0x00010098 <+8>:	mov	r0, #0
+   0x0001009c <+12>:	mov	r7, #1
+=> 0x000100a0 <+16>:	svc	0x00000000
+   0x000100a4 <+20>:	andeq	r0, r2, r12, lsr #1
+   0x000100a8 <+24>:	strheq	r0, [r2], -r0	; <UNPREDICTABLE>
+End of assembler dump.
+(gdb) p (int)result
+$7 = 120
+(gdb) i r r0
+r0             0x0                 0
+```
+
+result = 120  
+r0 = 0
 
 ## Notes
 
 .word -> 4 bytes (32 bits)
+
+gdb supports shortened versions of commands (e.g print -> p)
