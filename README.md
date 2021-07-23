@@ -7,7 +7,7 @@
 as -o fac.o fac.s
 ```
 
-### Linker
+### Link
 ```bash
 ld -o fac fac.o
 ```
