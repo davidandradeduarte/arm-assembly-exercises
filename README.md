@@ -1,4 +1,4 @@
-# ARM Assembly exercises from "How Computers Really Work" book, by Matthew Justice
+# ARM Assembly exercises - from "How Computers Really Work" book, by Matthew Justice
 
 ### Assemble
 ```bash
